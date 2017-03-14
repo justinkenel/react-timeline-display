@@ -3,7 +3,9 @@ module.exports = {
   entry: './src/Timeline.jsx',
   output: {
     path: path.resolve('dist'),
-    filename: 'index.js'
+    filename: 'index.js',
+    library:'reactTimelineDisplay',
+    libraryTarget:'umd'
   },
   module: {
     loaders: [

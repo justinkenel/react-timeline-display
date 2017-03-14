@@ -217,4 +217,6 @@ const Timeline = React.createClass({
   }
 });
 
+export default Timeline;
+
 export {Timeline};
