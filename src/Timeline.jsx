@@ -66,10 +66,43 @@ const DescriptorColumn = React.createClass({
   }
 });
 
+const scales = {
+  month: {
+    diff(start, end) {
+      return end.clone().add(1,'month').startOf('month').diff(start, 'month');
+    },
+    header(date, offset) {
+      return date.clone().add(offset, 'month').format('MMM YY');
+    },
+    firstStart(dates) {
+      return moment.min(dates.map(x => x.clone().startOf('month')));
+    },
+    lastEnd(dates) {
+      return moment.max(dates.map(x => x.clone().endOf('month')));
+    }
+  },
+  year: {
+    diff(start, end) {
+      return end.clone().add(1,'year').startOf('year').diff(start, 'year');
+    },
+    header(date, offset) {
+      return date.clone().add(offset, 'year').format('YYYY');
+    },
+    firstStart(dates) {
+      return moment.min(dates.map(x => x.clone().startOf('year')));
+    },
+    lastEnd(dates) {
+      return moment.max(dates.map(x => x.clone().endOf('year')));
+    }
+  }
+};
+
 const TimelineHeader = React.createClass({
   render() {
-    const width = '99px';
+    // const width = '99px';
+    const width = (100/this.props.totalDivs) + '%';
 
+    const scale = scales[this.props.scale];
     const divisions = [];
     for(let i=0; i<this.props.totalDivs; i++) {
       const style = {
@@ -83,10 +116,11 @@ const TimelineHeader = React.createClass({
         textAlign: 'center',
         paddingTop: '6px'
       };
-      divisions.push(<div style={style}>{this.props.start.clone().add(i, 'month').format('MMM YY')}</div>);
+      divisions.push(<div style={style}>{scale.header(this.props.start, i)}</div>);
     }
 
     const style = {
+      minWidth: '100%',
       width: this.props.rowWidth + 'px',
       display: 'inline-flex',
       borderBottom: 'solid 1px #D3D3D3',
@@ -106,6 +140,7 @@ const TimelineRow = React.createClass({
   render() {
     const node = this.props.node;
     const style = {
+      minWidth: '100%',
       height: '30px',
       borderBottom: 'solid 1px #D3D3D3',
       paddingRight: '2px',
@@ -133,7 +168,7 @@ const TimelineRow = React.createClass({
 
 const TimelineRows = React.createClass({
   render() {
-    const totalDivs = this.props.end.diff(this.props.start, this.props.scale);
+    const totalDivs = scales[this.props.scale].diff(this.props.start, this.props.end);
     const rowWidth = totalDivs * 100;
 
     const header = (<TimelineHeader
@@ -157,11 +192,13 @@ const TimelineRows = React.createClass({
 });
 
 const Timeline = React.createClass({
-  getInitialState() {
+  render() {
     const flat = this.props.data.map(f => flattenTree(f, 0)).reduce(concat, []);
 
-    const firstStart = moment.min(flat.map(x => x.start).filter(x => x));
-    const lastEnd = moment.max(flat.map(x => x.end).filter(x => x));
+    const scale = scales[this.props.scale || 'month'];
+
+    const firstStart = scale.firstStart(flat.map(x => x.start).filter(x => x));
+    const lastEnd = scale.lastEnd(flat.map(x => x.end).filter(x => x));
 
     const maxTime = lastEnd - firstStart;
 
@@ -187,17 +224,8 @@ const Timeline = React.createClass({
       }
     });
 
-    return {
-      flat: flat,
-      firstStart: firstStart,
-      lastEnd: lastEnd,
-      maxTime: maxTime
-    };
-  },
-  render() {
     let collapsed = undefined;
-    const expanded = this.state.flat.reduce((nodes, node) => {
-      console.log(collapsed + ' <? ' + node.indent);
+    const expanded = flat.reduce((nodes, node) => {
       if(collapsed < node.indent) return nodes;
       collapsed = undefined;
       if(node.state == 'collapsed') {
@@ -210,7 +238,10 @@ const Timeline = React.createClass({
       <Row is="nospace">
         <Cell is="3 nospace"><DescriptorColumn flat={expanded} /></Cell>
         <Cell is="9 nospace">
-          <TimelineRows flat={expanded} start={this.state.firstStart} end={this.state.lastEnd} scale='month' />
+          <TimelineRows flat={expanded}
+            start={firstStart}
+            end={lastEnd}
+            scale={this.props.scale || 'month'} />
         </Cell>
       </Row>
     </Grid>);

@@ -29,4 +29,7 @@ const testData = [
   }
 ];
 
-ReactDom.render(<Timeline data={testData}/>, document.getElementById('react'));
+ReactDom.render((<div>
+  <Timeline data={testData}/>
+  <Timeline data={testData} scale='year'/>
+</div>), document.getElementById('react'));
