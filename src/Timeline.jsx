@@ -84,7 +84,8 @@ const TimelineRow = React.createClass({
       height: '30px',
       borderBottom: 'solid 1px #D3D3D3',
       paddingRight: '2px',
-      paddingLeft: '2px'
+      paddingLeft: '2px',
+      width: this.props.rowWidth + 'px'
     };
     if(node.percent) {
       style.height = '28px';
@@ -107,10 +108,18 @@ const TimelineRow = React.createClass({
 
 const TimelineRows = React.createClass({
   render() {
-    const rows = [<TimelineRow node={{}} />].concat(this.props.flat.map(node => <TimelineRow node={node} />));
+    const totalDivs = this.props.end.diff(this.props.start, this.props.scale);
+    const rowWidth = totalDivs * 100;
+
+    const rows = [<TimelineRow rowWidth={rowWidth} node={{}} />] // TODO: header
+      .concat(this.props.flat.map(node => <TimelineRow rowWidth={rowWidth} node={node} />));
     const style = {
       borderTop: 'solid 1px #D3D3D3',
-      borderRight: 'solid 1px #D3D3D3'
+      borderRight: 'solid 1px #D3D3D3',
+      overflowX: 'hidden',
+      overflowY: 'hidden',
+      width: '100%',
+      display: 'inline-block'
     }
     return <div style={style}>{rows}</div>;
   }
@@ -136,7 +145,7 @@ const Timeline = React.createClass({
     return (<Grid>
       <Row is="nospace">
         <Cell is="3 nospace"><DescriptorColumn flat={flat} /></Cell>
-        <Cell is="9 nospace"><TimelineRows flat={flat} start={firstStart} end={lastEnd} /></Cell>
+        <Cell is="9 nospace"><TimelineRows flat={flat} start={firstStart} end={lastEnd} scale='month' /></Cell>
       </Row>
     </Grid>);
   }
