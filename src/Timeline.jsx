@@ -199,10 +199,12 @@ const Timeline = React.createClass({
     }
   },
   render() {
-    const flat = this.props.data.map(f => flattenTree(f, 0)).reduce(concat, []);
-
     const scale = scales[this.props.scale || 'month'];
+    if(!scale) {
+      throw "Invalid scale [" + this.props.scale + "] provided. Must be one of: " + Object.keys(scales);
+    }
 
+    const flat = this.props.data.map(f => flattenTree(f, 0)).reduce(concat, []);
     const firstStart = scale.firstStart(flat.map(x => x.start).filter(x => x));
     const lastEnd = scale.lastEnd(flat.map(x => x.end).filter(x => x));
 
