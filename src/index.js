@@ -23,6 +23,9 @@ const testData = [
     name: 'Two Towers',
     start: moment('2016-08').toDate(),
     end: moment('2017-02').toDate()
+  },
+  {
+    name: 'The Return of the King'
   }
 ];
 

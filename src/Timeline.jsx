@@ -46,27 +46,32 @@ const DescriptorColumn = React.createClass({
   }
 });
 
-const TimelineDivisions = React.createClass({
+const TimelineHeader = React.createClass({
   render() {
-    const width = 100.0 / this.props.count;
+    const width = '99px';
 
     const divisions = [];
-    for(let i=0; i<this.props.count; i++) {
-      console.log(i);
+    for(let i=0; i<this.props.totalDivs; i++) {
       const style = {
-        width: width + '%',
-        left: (width * i) + '%',
+        width: width,
         top: '0px',
-        height: '30px',
-        borderRight: 'solid 1px #D3D3D3',
-        marginTop: '2px',
-        display: 'inline-block'
+        height: '24px',
+        borderRight: i+1<this.props.totalDivs && 'solid 1px #D3D3D3',
+        display: 'inline-block',
+        fontFamily: 'arial',
+        color: 'gray',
+        textAlign: 'center',
+        paddingTop: '6px'
       };
-      divisions.push(<div style={style}/>);
+      divisions.push(<div style={style}>{this.props.start.clone().add(i, 'month').format('MMM YY')}</div>);
     }
 
     const style = {
-      display: 'block'
+      width: this.props.rowWidth + 'px',
+      display: 'inline-flex',
+      borderBottom: 'solid 1px #D3D3D3',
+      paddingRight: '2px',
+      paddingLeft: '2px'
     };
     return (<div style={style}>{divisions}</div>);
   }
@@ -81,6 +86,7 @@ const TimelineRow = React.createClass({
   render() {
     const node = this.props.node;
     const style = {
+      //height: this.props.index == 0 ? '27px' : '30px',
       height: '30px',
       borderBottom: 'solid 1px #D3D3D3',
       paddingRight: '2px',
@@ -111,7 +117,14 @@ const TimelineRows = React.createClass({
     const totalDivs = this.props.end.diff(this.props.start, this.props.scale);
     const rowWidth = totalDivs * 100;
 
-    const rows = [<TimelineRow rowWidth={rowWidth} node={{}} />] // TODO: header
+    const header = (<TimelineHeader
+      totalDivs={totalDivs}
+      scale={this.props.scale}
+      start={this.props.start}
+      rowWidth={rowWidth}
+      end={this.props.end}/>);
+
+    const rows = [header]
       .concat(this.props.flat.map(node => <TimelineRow rowWidth={rowWidth} node={node} />));
     const style = {
       borderTop: 'solid 1px #D3D3D3',
