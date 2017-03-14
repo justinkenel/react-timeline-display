@@ -11,7 +11,8 @@ function flattenTree(node, indent) {
     start:node.start && moment(node.start),
     end:node.end && moment(node.end),
     indent:indent,
-    state: node.children ? 'expanded' : 'child'
+    id: node.id || node.name,
+    type: node.children ? 'parent' : 'child'
   };
   if(!node.children) { return [x]; }
   return node.children.map(child => flattenTree(child, indent+1)).reduce(concat, [x]);
@@ -47,7 +48,7 @@ const DescriptorColumn = React.createClass({
           <i style={iconStyle} className={iconMap[node.state]} onClick={node.clickBehavior[node.state]}/>
           {node.name}
         </div>);
-      } else if(node.state == 'child') {
+      } else if(node.type == 'child') {
         return <div style={style}>{node.name}</div>;
       }
     });
@@ -192,6 +193,11 @@ const TimelineRows = React.createClass({
 });
 
 const Timeline = React.createClass({
+  getInitialState() {
+    return {
+      collapsed: {}
+    }
+  },
   render() {
     const flat = this.props.data.map(f => flattenTree(f, 0)).reduce(concat, []);
 
@@ -208,17 +214,18 @@ const Timeline = React.createClass({
         node.left = (node.start - firstStart) * 100 /maxTime;
       }
       // set the callbacks for the parent nodes
-      if(node.state != 'child') {
+      if(node.type != 'child') {
+        node.state = this.state.collapsed[node.id] ? 'collapsed' : 'expanded';
         node.clickBehavior = {
           collapsed: () => {
             console.log('clicked');
-            node.state = 'expanded';
-            this.setState({flat: flat});
+            delete this.state.collapsed[node.id];
+            this.setState({collapsed: this.state.collapsed});
           },
           expanded: () => {
             console.log('clicked');
-            node.state = 'collapsed'
-            this.setState({flat: flat});
+            this.state.collapsed[node.id] = true;
+            this.setState({collapsed: this.state.collapsed});
           }
         };
       }
