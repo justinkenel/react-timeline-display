@@ -116,12 +116,11 @@ const TimelineRows = React.createClass({
     const style = {
       borderTop: 'solid 1px #D3D3D3',
       borderRight: 'solid 1px #D3D3D3',
-      overflowX: 'hidden',
-      overflowY: 'hidden',
+      overflowX: 'scroll',
       width: '100%',
       display: 'inline-block'
     }
-    return <div style={style}>{rows}</div>;
+    return (<div style={style}>{rows}</div>);
   }
 });
 
@@ -138,7 +137,6 @@ const Timeline = React.createClass({
       if(node.end && node.start) {
         node.percent = (node.end - node.start) * 100 / maxTime;
         node.left = (node.start - firstStart) * 100 /maxTime;
-        console.log(node.left);
       }
     });
 
