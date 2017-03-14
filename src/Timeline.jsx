@@ -18,7 +18,7 @@ function flattenTree(node, indent) {
 
 const DescriptorColumn = React.createClass({
   render() {
-    const nodes = this.props.flat.map(node => {
+    const descriptorNodes = this.props.flat.map(node => {
       const style = {
         paddingLeft: 15*(node.indent+1) + 'px',
         borderBottom: 'solid 1px #D3D3D3',
@@ -30,6 +30,13 @@ const DescriptorColumn = React.createClass({
       };
       return <div style={style}>{node.name}</div>
     });
+
+    const headerStyle = {
+      height:'30px',
+      borderBottom: 'solid 1px #D3D3D3'
+    };
+    const nodes = [(<div style={headerStyle}/>)].concat(descriptorNodes);
+
     const style = {
       borderTop: 'solid 1px #D3D3D3',
       borderLeft: 'solid 1px #D3D3D3',
@@ -39,31 +46,68 @@ const DescriptorColumn = React.createClass({
   }
 });
 
+const TimelineDivisions = React.createClass({
+  render() {
+    const width = 100.0 / this.props.count;
+
+    const divisions = [];
+    for(let i=0; i<this.props.count; i++) {
+      console.log(i);
+      const style = {
+        width: width + '%',
+        left: (width * i) + '%',
+        top: '0px',
+        height: '30px',
+        borderRight: 'solid 1px #D3D3D3',
+        marginTop: '2px',
+        display: 'inline-block'
+      };
+      divisions.push(<div style={style}/>);
+    }
+
+    const style = {
+      display: 'block'
+    };
+    return (<div style={style}>{divisions}</div>);
+  }
+});
+
+const TimelineRow = React.createClass({
+  getInitialState() {
+    return {
+      hover: false
+    }
+  },
+  render() {
+    const node = this.props.node;
+    const style = {
+      height: '30px',
+      borderBottom: 'solid 1px #D3D3D3',
+      paddingRight: '2px',
+      paddingLeft: '2px'
+    };
+    if(node.percent) {
+      style.height = '28px';
+      const s = {
+        width: node.percent + '%',
+        borderRadius: '4px',
+        height: '26px',
+        marginTop: '2px',
+        backgroundColor: this.state.hover ? '#0066cc' : 'lightblue',
+        marginLeft: node.left + '%'
+      }
+      return (<div style={style}>
+        <div style={s} onMouseOver={() => this.setState({hover:true})}
+          onMouseOut={() => this.setState({hover:false})} />
+      </div>);
+    }
+    return (<div style={style} />);
+  }
+});
+
 const TimelineRows = React.createClass({
   render() {
-    const rows = this.props.flat.map((node, id) => {
-      const style = {
-        height: '30px',
-        borderBottom: 'solid 1px #D3D3D3',
-        paddingRight: '2px',
-        paddingLeft: '2px'
-      };
-      if(node.percent) {
-        style.height = '28px';
-        const s = {
-          width: node.percent + '%',
-          borderRadius: '4px',
-          height: '26px',
-          marginTop: '2px',
-          backgroundColor: 'lightblue',
-          marginLeft: node.left + '%'
-        }
-        return (<div style={style}>
-          <div style={s} />
-        </div>);
-      }
-      return <div style={style}></div>
-    });
+    const rows = [<TimelineRow node={{}} />].concat(this.props.flat.map(node => <TimelineRow node={node} />));
     const style = {
       borderTop: 'solid 1px #D3D3D3',
       borderRight: 'solid 1px #D3D3D3'
@@ -92,7 +136,7 @@ const Timeline = React.createClass({
     return (<Grid>
       <Row is="nospace">
         <Cell is="3 nospace"><DescriptorColumn flat={flat} /></Cell>
-        <Cell is="9 nospace"><TimelineRows flat={flat} /></Cell>
+        <Cell is="9 nospace"><TimelineRows flat={flat} start={firstStart} end={lastEnd} /></Cell>
       </Row>
     </Grid>);
   }
