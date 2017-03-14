@@ -46,12 +46,12 @@ const DescriptorColumn = React.createClass({
           paddingRight: '3px',
           cursor: 'pointer'
         };
-        return (<div style={style}>
+        return (<div key={'descriptor-' + node.id} style={style}>
           <i style={iconStyle} className={iconMap[node.state]} onClick={node.clickBehavior[node.state]}/>
           {node.name}
         </div>);
       } else if(node.type == 'child') {
-        return <div style={style}>{node.name}</div>;
+        return (<div key={'descriptor-' + node.id} style={style}>{node.name}</div>);
       }
     });
 
@@ -59,7 +59,7 @@ const DescriptorColumn = React.createClass({
       height:'30px',
       borderBottom: 'solid 1px #D3D3D3'
     };
-    const nodes = [(<div style={headerStyle}/>)].concat(descriptorNodes);
+    const nodes = [(<div key={'descriptor-header'} style={headerStyle}/>)].concat(descriptorNodes);
     const style = {
       borderTop: 'solid 1px #D3D3D3',
       borderLeft: 'solid 1px #D3D3D3',
@@ -119,7 +119,7 @@ const TimelineHeader = React.createClass({
         textAlign: 'center',
         paddingTop: '6px'
       };
-      divisions.push(<div style={style}>{scale.header(this.props.start, i)}</div>);
+      divisions.push(<div key={'division-'+i} style={style}>{scale.header(this.props.start, i)}</div>);
     }
 
     const style = {
@@ -174,7 +174,7 @@ const TimelineRows = React.createClass({
     const totalDivs = scales[this.props.scale].diff(this.props.start, this.props.end);
     const rowWidth = totalDivs * 100;
 
-    const header = (<TimelineHeader
+    const header = (<TimelineHeader key={'timeline-header'}
       totalDivs={totalDivs}
       scale={this.props.scale}
       start={this.props.start}
@@ -182,7 +182,7 @@ const TimelineRows = React.createClass({
       end={this.props.end}/>);
 
     const rows = [header]
-      .concat(this.props.flat.map(node => <TimelineRow rowWidth={rowWidth} node={node} />));
+      .concat(this.props.flat.map(node => <TimelineRow key={'timeline-row-' + node.id} rowWidth={rowWidth} node={node} />));
     const style = {
       borderTop: 'solid 1px #D3D3D3',
       borderRight: 'solid 1px #D3D3D3',
@@ -196,7 +196,7 @@ const TimelineRows = React.createClass({
 
 const FieldRows = React.createClass({
   render() {
-    const descriptorNodes = this.props.flat.map(node => {
+    const fieldDivs = this.props.flat.map(node => {
       const style = {
         paddingLeft: '5px',
         paddingRight: '5px',
@@ -208,7 +208,7 @@ const FieldRows = React.createClass({
         textAlign: 'center',
         color: 'gray'
       };
-      return <div style={style}>{node.fields[this.props.field] || ''}</div>;
+      return <div key={'field-'+this.props.field+'-'+node.id} style={style}>{node.fields[this.props.field] || ''}</div>;
     });
     const headerStyle = {
       height:'24px',
@@ -220,7 +220,7 @@ const FieldRows = React.createClass({
       display: 'inline-block',
       color: 'gray'
     };
-    const nodes = [(<div style={headerStyle}>{this.props.field}</div>)].concat(descriptorNodes);
+    const nodes = [(<div key={'field-'+this.props.field+'-header'} style={headerStyle}>{this.props.field}</div>)].concat(fieldDivs);
     const style = {
       borderTop: 'solid 1px #D3D3D3',
       borderRight: 'solid 1px #D3D3D3',
@@ -279,18 +279,18 @@ const Timeline = React.createClass({
       return nodes.concat(node);
     }, []);
 
-    const descriptorColumn = <Cell is="3 nospace"><DescriptorColumn flat={expanded} /></Cell>;
+    const descriptorColumn = <Cell key='descriptorColumn' is="3 nospace"><DescriptorColumn flat={expanded} /></Cell>;
 
     let fieldColumns;
     if(this.props.fields) {
       if(this.props.fields.length > 2) {
         throw "Invalid property fields - maximum additional fields is 2";
       }
-      fieldColumns = this.props.fields.map(f => (<Cell is="1 nospace"><FieldRows field={f} flat={expanded} /></Cell>));
+      fieldColumns = this.props.fields.map(f => (<Cell key={'field-'+f} is="1 nospace"><FieldRows field={f} flat={expanded} /></Cell>));
     }
 
     const timelineColumnCount = 9 - (this.props.fields ? this.props.fields.length : 0);
-    const timelineRows = (<Cell is={timelineColumnCount + " nospace"}>
+    const timelineRows = (<Cell key='timeline-rows' is={timelineColumnCount + " nospace"}>
       <TimelineRows flat={expanded}
         start={firstStart}
         end={lastEnd}
@@ -298,7 +298,7 @@ const Timeline = React.createClass({
     </Cell>);
 
     const options = {
-      gutter: '0',
+      gutter: 0,
       deaf: true
     };
 
