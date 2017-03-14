@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDom from 'react-dom';
 import {Grid, Row, Cell} from 'react-inline-grid';
 import moment from 'moment';
 
@@ -11,8 +12,9 @@ function flattenTree(node, indent) {
     start:node.start && moment(node.start),
     end:node.end && moment(node.end),
     indent:indent,
-    id: node.id || node.name,
-    type: node.children ? 'parent' : 'child'
+    id:node.id || node.name,
+    fields:node.fields || {},
+    type:node.children ? 'parent' : 'child'
   };
   if(!node.children) { return [x]; }
   return node.children.map(child => flattenTree(child, indent+1)).reduce(concat, [x]);
@@ -192,6 +194,42 @@ const TimelineRows = React.createClass({
   }
 });
 
+const FieldRows = React.createClass({
+  render() {
+    const descriptorNodes = this.props.flat.map(node => {
+      const style = {
+        paddingLeft: '5px',
+        paddingRight: '5px',
+        borderBottom: 'solid 1px #D3D3D3',
+        paddingBottom: '6px',
+        marginTop: '6px',
+        height: '18px',
+        fontFamily: 'arial',
+        textAlign: 'center',
+        color: 'gray'
+      };
+      return <div style={style}>{node.fields[this.props.field] || ''}</div>;
+    });
+    const headerStyle = {
+      height:'24px',
+      textAlign: 'center',
+      paddingTop: '6px',
+      width: '100%',
+      borderBottom: 'solid 1px #D3D3D3',
+      fontFamily: 'arial',
+      display: 'inline-block',
+      color: 'gray'
+    };
+    const nodes = [(<div style={headerStyle}>{this.props.field}</div>)].concat(descriptorNodes);
+    const style = {
+      borderTop: 'solid 1px #D3D3D3',
+      borderRight: 'solid 1px #D3D3D3',
+      overflow: 'hidden'
+    };
+    return <div style={style}>{nodes}</div>;
+  }
+});
+
 const Timeline = React.createClass({
   getInitialState() {
     return {
@@ -220,12 +258,10 @@ const Timeline = React.createClass({
         node.state = this.state.collapsed[node.id] ? 'collapsed' : 'expanded';
         node.clickBehavior = {
           collapsed: () => {
-            console.log('clicked');
             delete this.state.collapsed[node.id];
             this.setState({collapsed: this.state.collapsed});
           },
           expanded: () => {
-            console.log('clicked');
             this.state.collapsed[node.id] = true;
             this.setState({collapsed: this.state.collapsed});
           }
@@ -243,20 +279,47 @@ const Timeline = React.createClass({
       return nodes.concat(node);
     }, []);
 
-    return (<Grid>
+    const descriptorColumn = <Cell is="3 nospace"><DescriptorColumn flat={expanded} /></Cell>;
+
+    let fieldColumns;
+    if(this.props.fields) {
+      if(this.props.fields.length > 2) {
+        throw "Invalid property fields - maximum additional fields is 2";
+      }
+      fieldColumns = this.props.fields.map(f => (<Cell is="1 nospace"><FieldRows field={f} flat={expanded} /></Cell>));
+    }
+
+    const timelineColumnCount = 9 - (this.props.fields ? this.props.fields.length : 0);
+    const timelineRows = (<Cell is={timelineColumnCount + " nospace"}>
+      <TimelineRows flat={expanded}
+        start={firstStart}
+        end={lastEnd}
+        scale={this.props.scale || 'month'} />
+    </Cell>);
+
+    const options = {
+      gutter: '0',
+      deaf: true
+    };
+
+    return (<Grid options={options}>
       <Row is="nospace">
-        <Cell is="3 nospace"><DescriptorColumn flat={expanded} /></Cell>
-        <Cell is="9 nospace">
-          <TimelineRows flat={expanded}
-            start={firstStart}
-            end={lastEnd}
-            scale={this.props.scale || 'month'} />
-        </Cell>
+        {descriptorColumn}
+        {fieldColumns || []}
+        {timelineRows}
       </Row>
     </Grid>);
   }
 });
 
-export default Timeline;
+Timeline.render = (options, element) => {
+  if(!options.data) {
+    throw "Invalid parameters: options.data must be provided"
+  }
+  ReactDom.render(<Timeline data={options.data}
+    fields={options.fields}
+    scale={options.scale}/>, element);
+};
 
+export default Timeline;
 export {Timeline};

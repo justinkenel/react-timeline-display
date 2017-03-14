@@ -12,7 +12,10 @@ const testData = [
         id: 'frodo',
         name: 'Frodo',
         start: moment('2017-01').toDate(),
-        end: moment('2017-03').toDate()
+        end: moment('2017-03').toDate(),
+        fields: {
+          Rings: 1
+        }
       },
       {
         id: 'sam',
@@ -36,5 +39,6 @@ const testData = [
 
 ReactDom.render((<div>
   <Timeline data={testData}/>
+  <Timeline data={testData} fields={['Rings']}/>
   <Timeline data={testData} scale='year'/>
 </div>), document.getElementById('react'));

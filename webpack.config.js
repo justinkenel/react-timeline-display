@@ -4,7 +4,7 @@ module.exports = {
   output: {
     path: path.resolve('dist'),
     filename: 'index.js',
-    library:'reactTimelineDisplay',
+    library:'Timeline',
     libraryTarget:'umd'
   },
   module: {
