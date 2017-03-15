@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDom from 'react-dom';
 import {Grid, Row, Cell} from 'react-inline-grid';
 import moment from 'moment';
+import ReactTooltip from 'react-tooltip';
 
 function concat(a, n) { return a.concat(n); }
 
@@ -102,7 +103,6 @@ const scales = {
 
 const TimelineHeader = React.createClass({
   render() {
-    // const width = '99px';
     const width = (100/this.props.totalDivs) + '%';
 
     const scale = scales[this.props.scale];
@@ -160,9 +160,30 @@ const TimelineRow = React.createClass({
         backgroundColor: this.state.hover ? '#0066cc' : 'lightblue',
         marginLeft: node.left + '%'
       };
+
+      const tooltipContents = (() => {
+        if(node.fields) {
+          return Object.keys(node.fields).map(f => {
+            return (<div style={{paddingBottom: '5px'}}>{f}: {node.fields[f]}</div>);
+          });
+        } else {
+          return [];
+        }
+      })();
+
       return (<div style={style}>
         <div style={s} onMouseOver={() => this.setState({hover:true})}
-          onMouseOut={() => this.setState({hover:false})} />
+          onMouseOut={() => this.setState({hover:false})}>
+          <a data-tip data-for={'row-'+node.id}><div style={{width:'100%', height:'100%'}} /></a>
+          <ReactTooltip id={'row-'+node.id} type="info">
+            <div style={{fontFamily:'arial'}}>
+              <div style={{paddingBottom: '5px'}}>{node.name}</div>
+              <div style={{paddingBottom: '5px'}}>Start: {node.start.calendar()}</div>
+              <div style={{paddingBottom: '5px'}}>End: {node.end.calendar()}</div>
+              {tooltipContents}
+            </div>
+          </ReactTooltip>
+        </div>
       </div>);
     }
     return (<div style={style} />);
@@ -312,7 +333,7 @@ const Timeline = React.createClass({
   }
 });
 
-Timeline.render = (options, element) => {
+const render = (options, element) => {
   if(!options.data) {
     throw "Invalid parameters: options.data must be provided"
   }
@@ -322,4 +343,4 @@ Timeline.render = (options, element) => {
 };
 
 export default Timeline;
-export {Timeline};
+export {Timeline, render};
